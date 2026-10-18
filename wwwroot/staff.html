@@ -1,0 +1,169 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sesigo - Staff Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .dashboard-container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+            .table th, .table td {
+                padding: 12px;
+                text-align: left;
+                border-bottom: 1px solid #334155;
+                font-size: 14px;
+            }
+
+            .table th {
+                color: #38bdf8;
+            }
+
+        .btn-action {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .btn-call {
+            background: #22c55e;
+            color: white;
+            margin-right: 6px;
+        }
+
+            .btn-call:hover {
+                background: #16a34a;
+            }
+
+        .btn-complete {
+            background: #64748b;
+            color: white;
+        }
+
+            .btn-complete:hover {
+                background: #475569;
+            }
+
+        .pin-box {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+            .pin-box input {
+                max-width: 200px;
+            }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <h1>Staff Control Dashboard</h1>
+        <p class="subtitle">Manage live queues and process customer tickets</p>
+
+        <div class="pin-box">
+            <input type="password" id="staffPin" placeholder="Enter Staff PIN (default 1234)" value="1234">
+            <button onclick="loadQueue()" class="btn-primary" style="margin-top:0; width:auto; padding: 10px 20px;">Connect</button>
+        </div>
+
+        <div class="card" style="max-width: 100%;">
+            <h2>Waiting Queue</h2>
+            <div style="overflow-x: auto;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Ticket</th>
+                            <th>Phone</th>
+                            <th>Service</th>
+                            <th>Joined At</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="waitingTable">
+                        <tr><td colspan="5" style="text-align: center; color: #94a3b8;">Enter PIN and click Connect to load queue.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadQueue() {
+            const pin = document.getElementById('staffPin').value;
+            try {
+                const res = await fetch('/api/staff/waiting', {
+                    headers: { 'X-Staff-Pin': pin }
+                });
+                if (!res.ok) {
+                    alert('Unauthorized: Invalid Staff PIN');
+                    return;
+                }
+                const tickets = await res.json();
+                const tbody = document.getElementById('waitingTable');
+                if (tickets.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #94a3b8;">No customers currently waiting.</td></tr>`;
+                    return;
+                }
+                tbody.innerHTML = tickets.map(t => `
+                    <tr>
+                        <td><strong>${t.ticketNumber}</strong></td>
+                        <td>${t.phone}</td>
+                        <td>${t.serviceType}</td>
+                        <td>${new Date(t.createdAt).toLocaleTimeString()}</td>
+                        <td>
+                            <button class="btn-action btn-call" onclick="callNext(${t.id})">Call / Serve</button>
+                            <button class="btn-action btn-complete" onclick="completeTicket(${t.id})">Complete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                alert('Could not connect to server.');
+            }
+        }
+
+        async function callNext(id) {
+            const pin = document.getElementById('staffPin').value;
+            const res = await fetch(`/api/staff/call-next/${id}`, {
+                method: 'POST',
+                headers: { 'X-Staff-Pin': pin }
+            });
+            if (res.ok) loadQueue();
+            else alert('Action failed.');
+        }
+
+        async function completeTicket(id) {
+            const pin = document.getElementById('staffPin').value;
+            const res = await fetch(`/api/staff/complete/${id}`, {
+                method: 'POST',
+                headers: { 'X-Staff-Pin': pin }
+            });
+            if (res.ok) loadQueue();
+            else alert('Action failed.');
+        }
+
+        // Auto-refresh every 10 seconds
+        setInterval(() => {
+            const pin = document.getElementById('staffPin').value;
+            if (pin) loadQueue();
+        }, 10000);
+    </script>
+</body>
+</html>

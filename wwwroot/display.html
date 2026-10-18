@@ -1,0 +1,56 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sesigo - Live Queue Display</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            background: #020617;
+        }
+
+        .display-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .display-card {
+            background: #0f172a;
+            border: 2px solid #38bdf8;
+            border-radius: 24px;
+            padding: 60px 80px;
+            box-shadow: 0 0 50px rgba(56, 189, 248, 0.2);
+        }
+
+        .huge-ticket {
+            font-size: 96px;
+            font-weight: 800;
+            color: #38bdf8;
+            margin: 20px 0;
+            letter-spacing: 2px;
+        }
+
+        .counter-label {
+            font-size: 28px;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="display-container">
+        <h1 style="font-size: 48px; margin-bottom: 20px;">Sesigo Live Waiting Room</h1>
+        <div class="display-card">
+            <div class="counter-label">NOW SERVING</div>
+            <div id="currentTicket" class="huge-ticket">T120512</div>
+            <p id="serviceInfo" style="font-size: 20px; color: #cbd5e1;">Please proceed to Counter 1</p>
+        </div>
+    </div>
+</body>
+</html>
